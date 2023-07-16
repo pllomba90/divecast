@@ -31,6 +31,46 @@ class User(db.Model):
     
     location = db.Column(db.String,
                          nullable=False)
+    email = db.Column(db.String,
+                    nullable=False)
+    
+    @classmethod
+    def signup(cls, first_name, last_name, username, email, password, location):
+        """Sign up user.
+
+        Hashes password and adds user to system.
+        """
+
+        hashed_pwd = bcrypt.generate_password_hash(password).decode('UTF-8')
+
+        user = User(
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            email=email,
+            password=hashed_pwd,
+            location=location
+        )
+
+        db.session.add(user)
+        return user
+    
+    @classmethod
+    def authenticate(cls, username, password):
+        """Find user with `username` and `password`. Basic login method.
+        """
+
+        user = cls.query.filter_by(username=username).first()
+
+        if user:
+            is_auth = bcrypt.check_password_hash(user.password, password)
+            if is_auth:
+                return user
+
+        return False
+
+    
+
     
 
 class Tide(db.Model):

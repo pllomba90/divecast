@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome!{% endblock%}
+
+{% block content %}
+<div class="container ">
+<h1 class="display-1">Welcome {{ user.first_name }} {{ user.last_name }}!</h1>
+<p>Your forecast is overcast and foggy in {{ user.location }}.
+    Best to stay out of the water today!
+</p>
+</div>
+{% endblock %}
