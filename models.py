@@ -31,6 +31,12 @@ class User(db.Model):
     
     location = db.Column(db.String,
                          nullable=False)
+    latitude = db.Column(db.Float, 
+                         nullable=True)
+
+    longitude = db.Column(db.Float, 
+                          nullable=True)
+    
     email = db.Column(db.String,
                     nullable=False)
     
@@ -39,7 +45,7 @@ class User(db.Model):
                                  uselist=False)
     
     @classmethod
-    def signup(cls, first_name, last_name, username, email, password, location):
+    def signup(cls, first_name, last_name, username, email, password, location, latitude, longitude):
         """Sign up user.
 
         Hashes password and adds user to system.
@@ -53,7 +59,9 @@ class User(db.Model):
             username=username,
             email=email,
             password=hashed_pwd,
-            location=location
+            location=location,
+            latitude=latitude, 
+            longitude=longitude 
         )
 
         db.session.add(user)

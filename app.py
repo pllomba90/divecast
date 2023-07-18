@@ -3,6 +3,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from forms import SignUpForm, LoginForm, PreferenceForm
 from sqlalchemy.exc import IntegrityError
 from models import User, Weather, Tide, Preference, db, connect_db
+import requests
 
 CURR_USER_KEY = "curr_user"
 
@@ -14,6 +15,7 @@ app.config['SQLALCHEMY_ECHO'] = True
 
 with app.app_context():
     connect_db(app)
+    db.drop_all()
     db.create_all()
 
 app.config['SECRET_KEY'] = "alwaysbetter"
@@ -63,30 +65,51 @@ def home_page():
 @app.route('/sign_up', methods=['GET', 'POST'])
 def sign_up():
     form = SignUpForm()
+
     if form.is_submitted() and form.validate():
-        try:
-            user = User.signup(
-                first_name=form.first_name.data,
-                last_name=form.last_name.data,
-                username=form.username.data,
-                password=form.password.data,
-                email=form.email.data,
-                location=form.location.data
-            )
-            
-            db.session.commit()
+       
+        location = form.location.data
 
-        except IntegrityError:
-            flash("Username already taken", 'danger')
-            return render_template('sign-up.html', form=form)
+        
+        api_key = '5b5d66b9a6ff4b5789d6d3a6ae9f7268'  
+        url = f'https://api.opencagedata.com/geocode/v1/json?q={location}&key={api_key}'
 
-        do_login(user)
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('results'):
+                latitude = data['results'][0]['geometry']['lat']
+                longitude = data['results'][0]['geometry']['lng']
 
-        return redirect("/initial_pref")
+                try:
+                    
+                    user = User.signup(
+                        first_name=form.first_name.data,
+                        last_name=form.last_name.data,
+                        username=form.username.data,
+                        password=form.password.data,
+                        email=form.email.data,
+                        location=location,  
+                        latitude=latitude, 
+                        longitude=longitude  
+                    )
 
-    else:
-        return render_template('sign-up.html', form=form)
+                    
+                    db.session.commit()
 
+                except IntegrityError:
+                    flash("Username already taken", 'danger')
+                    return render_template('sign-up.html', form=form)
+
+                do_login(user)
+
+                return redirect("/initial_pref")
+            else:
+                flash('Location not found. Please enter a valid location.', 'danger')
+        else:
+            flash('Error occurred during geocoding. Please try again later.', 'danger')
+
+    return render_template('sign-up.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
