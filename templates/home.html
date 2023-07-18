@@ -6,7 +6,18 @@
 <div class="container ">
 <h1 class="display-1">Welcome {{ user.first_name }} {{ user.last_name }}!</h1>
 <p>Your forecast is overcast and foggy in {{ user.location }}.
-    Best to stay out of the water today!
+    Based on your preferred air temp of {{ user.preference.air_temp }} &deg;F and the 
+    current temperature of 55&deg;F , you should stay out of the water. 
 </p>
+<h2>Your Preferences:</h2>
+{% if user.preference %}
+  <p>Temperature Unit: {{ user.preference.temp_unit }}</p>
+  <p>Air Temperature: {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }}</p>
+  <p>Tide Preference: {{ user.preference.tide_preference }}</p>
+  <p>Time of Day: {{ user.preference.time_of_day }}</p>
+{% else %}
+  <p>No preferences found.</p>
+{% endif %}
+</div>
 </div>
 {% endblock %}

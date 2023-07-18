@@ -34,6 +34,10 @@ class User(db.Model):
     email = db.Column(db.String,
                     nullable=False)
     
+    preference = db.relationship('Preference', 
+                                 backref='users', 
+                                 uselist=False)
+    
     @classmethod
     def signup(cls, first_name, last_name, username, email, password, location):
         """Sign up user.
@@ -110,10 +114,41 @@ class Preference(db.Model):
 
     __tablename__ = "preferences"
 
-    weather_id = db.Column(db.Integer,
-                           db.ForeignKey('weather.id', ondelete='cascade'),
-                           primary_key=True)
-    
-    tide_id = db.Column(db.Integer,
-                        db.ForeignKey('tides.id', ondelete='cascade'),
+    user_id = db.Column(db.Integer, 
+                        db.ForeignKey('users.id'), 
                         primary_key=True)
+    
+    user = db.relationship('User', 
+                           backref='preferences', 
+                           uselist=False)
+    
+    temp_unit = db.Column(db.String,
+                          default='f',
+                          nullable=False)
+    
+    air_temp = db.Column(db.Integer,
+                         nullable=False)
+    
+    tide_preference = db.Column(db.String,
+                                default='Outgoing',
+                                nullable=False)
+    
+    time_of_day = db.Column(db.String,
+                            default='Afternoon',
+                            nullable=False)
+    
+    @classmethod
+    def create_preference(cls, user_id, temp_unit, air_temp, tide_pref, time_of_day):
+        """Method to create a users new preferences"""
+
+        new_pref = Preference(
+        user_id=user_id,
+        temp_unit=temp_unit,
+        air_temp=air_temp,
+        tide_preference=tide_pref,
+        time_of_day=time_of_day
+    )
+
+        db.session.add(new_pref)
+
+        return new_pref

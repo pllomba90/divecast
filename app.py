@@ -1,6 +1,6 @@
 from flask import Flask, redirect, render_template, session, flash, g
 from flask_debugtoolbar import DebugToolbarExtension
-from forms import SignUpForm, LoginForm
+from forms import SignUpForm, LoginForm, PreferenceForm
 from sqlalchemy.exc import IntegrityError
 from models import User, Weather, Tide, Preference, db, connect_db
 
@@ -36,6 +36,7 @@ def do_login(user):
     """Log in user."""
 
     session[CURR_USER_KEY] = user.id
+    session['username'] = user.username
 
 
 def do_logout():
@@ -43,6 +44,7 @@ def do_logout():
 
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
+        session['username'] = None
 
 
 @app.route('/')
@@ -80,14 +82,73 @@ def sign_up():
 
         do_login(user)
 
-        return redirect("/")
+        return redirect("/initial_pref")
 
     else:
         return render_template('sign-up.html', form=form)
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
 
+    if form.is_submitted() and form.validate():
+        user = User.authenticate(form.username.data,
+                                 form.password.data)
+
+        if user:
+            do_login(user)
+            flash(f"Hello, {user.username}!", "success")
+            return redirect("/")
+
+        flash("Invalid credentials.", 'danger')
+
     return render_template('login.html', form=form)
+
+@app.route('/initial_pref', methods=['GET', 'POST'])
+def set_up_prefs():
+
+    form = PreferenceForm()
+
+    if form.is_submitted() and form.validate():
+
+        new_pref = Preference.create_preference(
+            user_id = g.user.id,
+            temp_unit=form.temp_unit.data,
+            air_temp=form.air_temp.data,
+            tide_pref=form.tide_pref.data,
+            time_of_day=form.time_of_day.data
+        )
+
+        db.session.commit()
+        return redirect('/')
+    else:
+        return render_template('initial_prefs.html', form=form)
+    
+@app.route('/user/edit', methods=['GET', 'POST'])
+def edit_user():
+
+    user = g.user
+
+    form = PreferenceForm(obj=user.preference)
+
+    if form.is_submitted() and form.validate():
+
+        preference = user.preference
+        preference.temp_unit = form.temp_unit.data
+        preference.air_temp = form.air_temp.data
+        preference.tide_pref = form.tide_pref.data
+        preference.time_of_day = form.time_of_day.data
+       
+        db.session.commit()
+        return redirect('/')
+    else:
+
+        return render_template('edit.html', user=user, form=form)
+
+@app.route('/logout')
+def logout():
+
+    do_logout()
+
+    return render_template('home-anon.html')

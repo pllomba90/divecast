@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField
+from wtforms import StringField, SelectField, IntegerField, PasswordField, TextAreaField
 from wtforms.validators import DataRequired, Email, Length
 
 class SignUpForm(FlaskForm):
@@ -18,3 +18,16 @@ class LoginForm(FlaskForm):
 
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[Length(min=6)])
+
+
+class PreferenceForm(FlaskForm):
+    """Form for establishing a user's preferences. I will 
+    also probably use this form to edit preferences as well. """
+
+    temp_unit = SelectField('Temperature Units', choices=[('F', 'Fahrenheit'), ('C', 'Celcius')])
+
+    air_temp = IntegerField('Air Temp', validators=[DataRequired()])
+
+    tide_pref = SelectField('Tidal Preference', choices=[('Incoming', 'Incoming'), ('Outgoing', 'outgoing')])
+
+    time_of_day = SelectField('Time of Day', choices=[('Morning', 'Morning'), ('Afternoon', 'Afternoon'), ('Evening', 'Evening')])
