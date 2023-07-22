@@ -5,9 +5,9 @@
 {% block content %}
 <div class="container ">
 <h1 class="display-1">Welcome {{ user.first_name }} {{ user.last_name }}!</h1>
-<p>Your forecast is overcast and foggy in {{ user.location }}.
-    Based on your preferred air temp of {{ user.preference.air_temp }} &deg;F and the 
-    current temperature of 55&deg;F , you should stay out of the water. 
+<p>Your forecast is {{ weather['data'][0]['weather']['description'] }} in {{ user.preference.location }}.
+    Based on your preferred air temp of {{ user.preference.air_temp }} &deg;{{ user.preference.temp_unit }} and the 
+    current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }} , you should stay out of the water. 
 </p>
 <h2>Your Preferences:</h2>
 {% if user.preference %}
@@ -20,4 +20,23 @@
 {% endif %}
 </div>
 </div>
+
+{% if weather %}
+        <p>Weather Description: {{ weather['data'][0]['weather']['description'] }}</p>
+        <p>Temperature: {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}</p>
+    {% else %}
+        <p>Weather information not available.</p>
+    {% endif %}
+
+    {% if tidal_info %}
+        <h2>Tidal Information:</h2>
+        <ul>
+            {% for event in tidal_info.data %}
+                <li>{{ event.time }} - {{ event.height }} meters</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Tidal information not available.</p>
+    {% endif %}
+    
 {% endblock %}

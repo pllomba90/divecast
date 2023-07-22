@@ -8,7 +8,6 @@ class SignUpForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
     username = StringField('Username', validators=[DataRequired()])
-    location = StringField('Location', validators=[DataRequired()])
     email = StringField('E-mail', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
 
@@ -31,3 +30,5 @@ class PreferenceForm(FlaskForm):
     tide_pref = SelectField('Tidal Preference', choices=[('Incoming', 'Incoming'), ('Outgoing', 'outgoing')])
 
     time_of_day = SelectField('Time of Day', choices=[('Morning', 'Morning'), ('Afternoon', 'Afternoon'), ('Evening', 'Evening')])
+
+    location = StringField('Location')

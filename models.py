@@ -29,14 +29,6 @@ class User(db.Model):
     password = db.Column(db.String,
                          nullable=False)
     
-    location = db.Column(db.String,
-                         nullable=False)
-    latitude = db.Column(db.Float, 
-                         nullable=True)
-
-    longitude = db.Column(db.Float, 
-                          nullable=True)
-    
     email = db.Column(db.String,
                     nullable=False)
     
@@ -45,7 +37,7 @@ class User(db.Model):
                                  uselist=False)
     
     @classmethod
-    def signup(cls, first_name, last_name, username, email, password, location, latitude, longitude):
+    def signup(cls, first_name, last_name, username, email, password):
         """Sign up user.
 
         Hashes password and adds user to system.
@@ -58,10 +50,7 @@ class User(db.Model):
             last_name=last_name,
             username=username,
             email=email,
-            password=hashed_pwd,
-            location=location,
-            latitude=latitude, 
-            longitude=longitude 
+            password=hashed_pwd
         )
 
         db.session.add(user)
@@ -145,8 +134,16 @@ class Preference(db.Model):
                             default='Afternoon',
                             nullable=False)
     
+    location = db.Column(db.String,
+                         nullable=False)
+    latitude = db.Column(db.Float, 
+                         nullable=True)
+
+    longitude = db.Column(db.Float, 
+                          nullable=True)
+    
     @classmethod
-    def create_preference(cls, user_id, temp_unit, air_temp, tide_pref, time_of_day):
+    def create_preference(cls, user_id, temp_unit, air_temp, tide_pref, time_of_day, location, latitude, longitude):
         """Method to create a users new preferences"""
 
         new_pref = Preference(
@@ -154,7 +151,10 @@ class Preference(db.Model):
         temp_unit=temp_unit,
         air_temp=air_temp,
         tide_preference=tide_pref,
-        time_of_day=time_of_day
+        time_of_day=time_of_day,
+        location=location,
+        latitude=latitude, 
+        longitude=longitude
     )
 
         db.session.add(new_pref)
