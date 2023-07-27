@@ -134,6 +134,10 @@ class Preference(db.Model):
                             default='Afternoon',
                             nullable=False)
     
+    forecast_length = db.Column(db.Integer, 
+                                default=7,
+                                nullable=False)
+    
     location = db.Column(db.String,
                          nullable=False)
     latitude = db.Column(db.Float, 
@@ -143,7 +147,7 @@ class Preference(db.Model):
                           nullable=True)
     
     @classmethod
-    def create_preference(cls, user_id, temp_unit, air_temp, tide_pref, time_of_day, location, latitude, longitude):
+    def create_preference(cls, user_id, temp_unit, air_temp, tide_pref, time_of_day, location, forecast_length, latitude, longitude):
         """Method to create a users new preferences"""
 
         new_pref = Preference(
@@ -153,6 +157,7 @@ class Preference(db.Model):
         tide_preference=tide_pref,
         time_of_day=time_of_day,
         location=location,
+        forecast_length=forecast_length,
         latitude=latitude, 
         longitude=longitude
     )

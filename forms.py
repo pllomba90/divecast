@@ -31,4 +31,6 @@ class PreferenceForm(FlaskForm):
 
     time_of_day = SelectField('Time of Day', choices=[('Morning', 'Morning'), ('Afternoon', 'Afternoon'), ('Evening', 'Evening')])
 
+    forecast_length = SelectField('Length of Forecast', choices=[(3, 3), (7,7), (10,10), (14,14)])
+
     location = StringField('Location')

@@ -3,8 +3,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 from forms import SignUpForm, LoginForm, PreferenceForm
 from sqlalchemy.exc import IntegrityError
 from models import User, Weather, Tide, Preference, db, connect_db
-import requests
-import arrow
+import requests, arrow, redis, json
+
 
 CURR_USER_KEY = "curr_user"
 
@@ -14,8 +14,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///divecast_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
+
 with app.app_context():
     connect_db(app)
+
     db.create_all()
 
 app.config['SECRET_KEY'] = "alwaysbetter"
@@ -29,6 +32,8 @@ def add_user_to_g():
 
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
+        if g.user:
+            print(f"User {g.user.username} added to 'g'")
 
     else:
         g.user = None
@@ -77,23 +82,17 @@ def get_current_weather(latitude, longitude, api_key, units):
     else:
         print(f'Error occurred during the API request. Status code: {response.status_code}')
         return None
+
+
+
+def fetch_and_cache_tidal_info(api_key, latitude, longitude):
+    cache_key = f'tidal_info:{latitude}:{longitude}:{api_key}'
     
-import requests
+    start = arrow.now().floor('day')
+    end = arrow.now().shift(days=3).floor('day')
 
-def get_tidal_info(api_key, latitude, longitude):
-    user = g.user
-
-    latitude = user.preference.latitude
-    longitude = user.preference.longitude
-    api_key = 'f7e98148-282d-11ee-86b2-0242ac130002-f7e981fc-282d-11ee-86b2-0242ac130002'
-    current_time = arrow.now()
-
-    start = current_time
-    end = current_time.shift(days=7)
-
-    start_date = start.format('YYYY-MM-DDTHH:mm:ss')
-    end_date = end.format('YYYY-MM-DDTHH:mm:ss')
-
+    start_date = start.to('UTC').timestamp()
+    end_date = end.to('UTC').timestamp()
 
     url = f'https://api.stormglass.io/v2/tide/extremes/point'
     headers = {'Authorization': api_key}
@@ -103,15 +102,30 @@ def get_tidal_info(api_key, latitude, longitude):
 
     if response.status_code == 200:
         data = response.json()
-        print (data)
+        serialized_data = json.dumps(data)
+        redis_client.set(cache_key, serialized_data, ex=86400)
         return data
     else:
         print(f'Error occurred during the API request. Status code: {response.status_code}')
         return None
 
+
+def get_tidal_info(api_key, latitude, longitude):
+    cache_key = f'tidal_info:{latitude}:{longitude}:{api_key}'
+    tidal_info = redis_client.get(cache_key)
+
+    if tidal_info is not None:
+        data = json.loads(tidal_info)
+        return data
+  
+    data = fetch_and_cache_tidal_info(api_key, latitude, longitude)
+    if data:
+        redis_client.set(cache_key, data, ex=86400)  
+
+    return data
+
 def get_current_coords(location, api_key):
-    user = g.user
-    location = user.preference.location
+    
     api_key = '5b5d66b9a6ff4b5789d6d3a6ae9f7268'  
     url = f'https://api.opencagedata.com/geocode/v1/json?q={location}&key={api_key}'
 
@@ -164,6 +178,7 @@ def sign_up():
             )
          db.session.commit()
          do_login(user)
+         add_user_to_g()
          return redirect("/initial_pref")
 
     else:
@@ -183,6 +198,7 @@ def login():
 
         if user:
             do_login(user)
+            add_user_to_g()
             flash(f"Hello, {user.username}!", "success")
             return redirect("/")
 
@@ -195,6 +211,7 @@ def login():
 @app.route('/initial_pref', methods=['GET', 'POST'])
 def set_up_prefs():
 
+
     form = PreferenceForm()
 
     api_key = "5b5d66b9a6ff4b5789d6d3a6ae9f7268"
@@ -206,6 +223,7 @@ def set_up_prefs():
             air_temp=form.air_temp.data
             tide_pref=form.tide_pref.data
             time_of_day=form.time_of_day.data
+            forecast_length = form.forecast_length.data
         
             latitude, longitude = get_current_coords(location, api_key)   
             new_pref = Preference.create_preference(
@@ -214,6 +232,7 @@ def set_up_prefs():
                         air_temp=air_temp,
                         tide_pref=tide_pref,
                         time_of_day=time_of_day,
+                        forecast_length=forecast_length,
                         location=location,  
                         latitude=latitude, 
                         longitude=longitude  
