@@ -67,7 +67,6 @@ def get_current_weather(latitude, longitude, api_key, units):
         units = "I"
     else:
         units = "M"
-
     
     
     
@@ -77,13 +76,48 @@ def get_current_weather(latitude, longitude, api_key, units):
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        print(data)
         return data
     else:
         print(f'Error occurred during the API request. Status code: {response.status_code}')
         return None
 
 
+def get_weather_forecast(latitude, longitude, api_key, units, forecast_length):
+
+    cache_key = f'weather_forecast:{latitude}:{longitude}:{api_key}:{units}:{forecast_length}'
+
+    forecast = redis_client.get(cache_key)
+    if forecast is not None:
+        return json.loads(forecast)
+    
+
+
+    api_key = '426dbf6c3c5c400688f952b786efc418'
+
+    user_id = g.user.id
+
+    user = User.query.get(user_id)
+
+    latitude = user.preference.latitude
+    longitude = user.preference.longitude
+    forecast_length = user.preference.forecast_length
+    if user.preference.temp_unit == "F":
+        units = "I"
+    else:
+        units = "M"
+    
+    url = f"https://api.weatherbit.io/v2.0/forecast/daily?lat={latitude}&lon={longitude}&key={api_key}&units={units}&days={forecast_length}"
+
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        serialized_data = json.dumps(data['data'])  # Convert list of dicts to JSON string
+        redis_client.set(cache_key, serialized_data, ex=3600)
+        return data['data']  # Return the list of dictionaries
+    else:
+        print(f'Error occurred during the API request. Status code: {response.status_code}')
+        return None
 
 def fetch_and_cache_tidal_info(api_key, latitude, longitude):
     cache_key = f'tidal_info:{latitude}:{longitude}:{api_key}'
@@ -120,9 +154,9 @@ def get_tidal_info(api_key, latitude, longitude):
   
     data = fetch_and_cache_tidal_info(api_key, latitude, longitude)
     if data:
-        redis_client.set(cache_key, data, ex=86400)  
+        # redis_client.set(cache_key, data, ex=86400)  
 
-    return data
+        return data
 
 def get_current_coords(location, api_key):
     
@@ -156,10 +190,27 @@ def home_page():
         else:
             units = "M"
 
-        weather = get_current_weather(latitude={user.preference.latitude}, longitude={user.preference.longitude}, api_key=weather_api_key, units=units)
-        tidal_info=get_tidal_info(latitude={user.preference.latitude}, longitude={user.preference.longitude}, api_key=tidal_api_key)
+        weather = get_current_weather(latitude={user.preference.latitude}, 
+                                      longitude={user.preference.longitude}, 
+                                      api_key=weather_api_key, 
+                                      units=units)
+        
+        tidal_info=get_tidal_info(latitude={user.preference.latitude},
+                                   longitude={user.preference.longitude}, 
+                                   api_key=tidal_api_key)
+        
+        extended_forecast = get_weather_forecast(latitude={user.preference.latitude},
+                                                  longitude={user.preference.longitude},
+                                                    api_key=weather_api_key, 
+                                                    units=units,
+                                                    forecast_length={user.preference.forecast_length})
+        
+    combined_data = zip(extended_forecast, tidal_info.items())
+    forecasts_and_tides = []
+    for forecast, tidal in combined_data:
+        forecasts_and_tides.append((forecast, tidal))
 
-        return render_template('home.html', user=user, weather=weather, tidal_info=tidal_info)
+        return render_template('home.html', user=user, weather=weather, tidal_info=tidal_info, forecasts_and_tides=forecasts_and_tides)
     else:
         return render_template('home-anon.html')
 
@@ -266,6 +317,7 @@ def edit_user():
         air_temp = form.air_temp.data
         tide_pref = form.tide_pref.data
         time_of_day = form.time_of_day.data
+        forecast_length = form.forecast_length.data
 
         latitude, longitude = get_current_coords(location, api_key)
 
@@ -278,6 +330,7 @@ def edit_user():
             preference.location = location
             preference.latitude = latitude
             preference.longitude = longitude
+            preference.forecast_length = forecast_length
 
             db.session.commit()
             return redirect('/')

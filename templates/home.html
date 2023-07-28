@@ -27,7 +27,7 @@
         {% set weather_icon = weather['data'][0]['weather']['icon'] %}
     </div>
     <div class="d-flex justify-content-center align-items-center">
-    <div class="card" style="width: 18rem;">
+    <div class="card text-bg-secondary border-dark" style="width: 18rem;">
         <img src="/static/icons/{{ weather_icon }}.png" class="card-img-top" alt="{{ weather['data'][0]['weather']['description'] }} icon">
         <div class="card-body">
           <h5 class="card-title">Current Weather in {{ user.preference.location }}</h5>
@@ -38,6 +38,30 @@
         </div>
     </div>
       </div>
+      <div class="container text-center mb-4">
+        <h2>Extended Forecast:</h2>
+      </div>
+      
+      <div class="container">
+        <div class="row justify-content-center">
+          {% for forecast, tidal in forecasts_and_tides %}
+            <div class="col-md-2 mb-2">
+              <div class="card text-bg-secondary border-dark" style="width: 11rem;">
+                <img src="/static/icons/{{ forecast.weather['icon'] }}.png" class="card-img-top" alt="{{ forecast.weather['description'] }} icon">
+                <div class="card-body">
+                  <h5 class="card-title">{{ forecast.valid_date }}</h5>
+                  <p class="card-text">Weather Description: {{ forecast.weather['description'] }}</p>
+                  <p class="card-text">Temperature: {{ forecast.temp }}&deg;{{ user.preference.temp_unit }}</p>
+                  <p class="card-text">Tide: {{ tidal.type }} - {{ tidal.time }}</p>
+                  <a href="#" class="btn btn-primary">Go somewhere</a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      
+      
 {% else %}
     <p>Weather information not available.</p>
 {% endif %}
@@ -46,7 +70,7 @@
     <h2>Tidal Information:</h2>
     <ul>
         {% for event in tidal_info.data %}
-            <li>{{ event.time }} - {{ event.height }} meters</li>
+            <li>{{ event.time }} - {{ event.type }}</li>
         {% endfor %}
     </ul>
 {% else %}
