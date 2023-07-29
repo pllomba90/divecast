@@ -113,17 +113,18 @@ def get_weather_forecast(latitude, longitude, api_key, units, forecast_length):
     if response.status_code == 200:
         data = response.json()
         serialized_data = json.dumps(data['data'])  # Convert list of dicts to JSON string
-        redis_client.set(cache_key, serialized_data, ex=3600)
+        redis_client.set(cache_key, serialized_data, ex=86400)
         return data['data']  # Return the list of dictionaries
     else:
         print(f'Error occurred during the API request. Status code: {response.status_code}')
         return None
 
-def fetch_and_cache_tidal_info(api_key, latitude, longitude):
-    cache_key = f'tidal_info:{latitude}:{longitude}:{api_key}'
+def fetch_and_cache_tidal_info(api_key, latitude, longitude, forecast_length):
+    user = g.user
+    cache_key = f'tidal_info:{latitude}:{longitude}:{api_key}:{forecast_length}'
     
     start = arrow.now().floor('day')
-    end = arrow.now().shift(days=3).floor('day')
+    end = arrow.now().shift(days=forecast_length).floor('day')
 
     start_date = start.to('UTC').timestamp()
     end_date = end.to('UTC').timestamp()
@@ -143,20 +144,25 @@ def fetch_and_cache_tidal_info(api_key, latitude, longitude):
         print(f'Error occurred during the API request. Status code: {response.status_code}')
         return None
 
+def get_tidal_info(api_key, latitude, longitude, forecast_length):
+   
+    user = g.user
+    forecast_length = user.preference.forecast_length
 
-def get_tidal_info(api_key, latitude, longitude):
-    cache_key = f'tidal_info:{latitude}:{longitude}:{api_key}'
+    forecast_length = int(forecast_length)
+    cache_key = f'tidal_info:{latitude}:{longitude}:{api_key}:{forecast_length}'
     tidal_info = redis_client.get(cache_key)
 
     if tidal_info is not None:
         data = json.loads(tidal_info)
         return data
   
-    data = fetch_and_cache_tidal_info(api_key, latitude, longitude)
+    data = fetch_and_cache_tidal_info(api_key, latitude, longitude, forecast_length)
     if data:
         # redis_client.set(cache_key, data, ex=86400)  
 
         return data
+
 
 def get_current_coords(location, api_key):
     
@@ -195,22 +201,21 @@ def home_page():
                                       api_key=weather_api_key, 
                                       units=units)
         
-        tidal_info=get_tidal_info(latitude={user.preference.latitude},
-                                   longitude={user.preference.longitude}, 
-                                   api_key=tidal_api_key)
+        tidal_info = get_tidal_info(latitude={user.preference.latitude},
+                                    longitude={user.preference.longitude}, 
+                                    api_key=tidal_api_key,
+                                    forecast_length={user.preference.forecast_length})
+        
         
         extended_forecast = get_weather_forecast(latitude={user.preference.latitude},
-                                                  longitude={user.preference.longitude},
-                                                    api_key=weather_api_key, 
-                                                    units=units,
-                                                    forecast_length={user.preference.forecast_length})
+                                                longitude={user.preference.longitude},
+                                                api_key=weather_api_key, 
+                                                units=units,
+                                                forecast_length={user.preference.forecast_length})
         
-    combined_data = zip(extended_forecast, tidal_info.items())
-    forecasts_and_tides = []
-    for forecast, tidal in combined_data:
-        forecasts_and_tides.append((forecast, tidal))
-
-        return render_template('home.html', user=user, weather=weather, tidal_info=tidal_info, forecasts_and_tides=forecasts_and_tides)
+        print("Type of tidal_info:", type(tidal_info))
+        print("Type of extended_forecast:", type(extended_forecast))
+        return render_template('home.html', user=user, weather=weather, tidal_info=tidal_info, extended_forecast=extended_forecast)
     else:
         return render_template('home-anon.html')
 
