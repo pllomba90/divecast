@@ -3,7 +3,9 @@ from flask_debugtoolbar import DebugToolbarExtension
 from forms import SignUpForm, LoginForm, PreferenceForm
 from sqlalchemy.exc import IntegrityError
 from models import User, Weather, Tide, Preference, db, connect_db
-import requests, arrow, redis, json
+import requests, arrow, redis, json, pytz
+from datetime import datetime
+
 
 
 CURR_USER_KEY = "curr_user"
@@ -121,6 +123,7 @@ def get_weather_forecast(latitude, longitude, api_key, units, forecast_length):
 
 def fetch_and_cache_tidal_info(api_key, latitude, longitude, forecast_length):
     user = g.user
+    forecast_length = int(user.preference.forecast_length)
     cache_key = f'tidal_info:{latitude}:{longitude}:{api_key}:{forecast_length}'
     
     start = arrow.now().floor('day')
@@ -144,25 +147,18 @@ def fetch_and_cache_tidal_info(api_key, latitude, longitude, forecast_length):
         print(f'Error occurred during the API request. Status code: {response.status_code}')
         return None
 
-def get_tidal_info(api_key, latitude, longitude, forecast_length):
-   
-    user = g.user
-    forecast_length = user.preference.forecast_length
 
-    forecast_length = int(forecast_length)
+def get_tidal_info(api_key, latitude, longitude, forecast_length):
     cache_key = f'tidal_info:{latitude}:{longitude}:{api_key}:{forecast_length}'
     tidal_info = redis_client.get(cache_key)
 
     if tidal_info is not None:
         data = json.loads(tidal_info)
         return data
-  
+
     data = fetch_and_cache_tidal_info(api_key, latitude, longitude, forecast_length)
     if data:
-        # redis_client.set(cache_key, data, ex=86400)  
-
         return data
-
 
 def get_current_coords(location, api_key):
     
@@ -175,6 +171,7 @@ def get_current_coords(location, api_key):
     if data.get('results'):
             latitude = data['results'][0]['geometry']['lat']
             longitude = data['results'][0]['geometry']['lng']
+            print(latitude, longitude)
             return latitude, longitude
     
     else:
@@ -184,9 +181,7 @@ def get_current_coords(location, api_key):
 
 @app.route('/')
 def home_page():
-    """Show homepage: either for a logged in user or for 
-    an anon user
-    """
+    """Show homepage: either for a logged-in user or for an anon user"""
     if g.user:
         user = g.user
         tidal_api_key = 'f7e98148-282d-11ee-86b2-0242ac130002-f7e981fc-282d-11ee-86b2-0242ac130002'
@@ -196,28 +191,33 @@ def home_page():
         else:
             units = "M"
 
-        weather = get_current_weather(latitude={user.preference.latitude}, 
-                                      longitude={user.preference.longitude}, 
+        weather = get_current_weather(latitude=user.preference.latitude, 
+                                      longitude=user.preference.longitude, 
                                       api_key=weather_api_key, 
                                       units=units)
         
-        tidal_info = get_tidal_info(latitude={user.preference.latitude},
-                                    longitude={user.preference.longitude}, 
+        tidal_info = get_tidal_info(latitude=user.preference.latitude,
+                                    longitude=user.preference.longitude, 
                                     api_key=tidal_api_key,
-                                    forecast_length={user.preference.forecast_length})
+                                    forecast_length=user.preference.forecast_length)
         
-        
-        extended_forecast = get_weather_forecast(latitude={user.preference.latitude},
-                                                longitude={user.preference.longitude},
+        extended_forecast = get_weather_forecast(latitude=user.preference.latitude,
+                                                longitude=user.preference.longitude,
                                                 api_key=weather_api_key, 
                                                 units=units,
-                                                forecast_length={user.preference.forecast_length})
+                                                forecast_length=user.preference.forecast_length)
         
-        print("Type of tidal_info:", type(tidal_info))
-        print("Type of extended_forecast:", type(extended_forecast))
+        user_timezone = user.preference.get_user_timezone(user.preference.latitude, user.preference.longitude)
+
+        for event in tidal_info['data']:
+            utc_time = arrow.get(event['time'])  
+            local_time = utc_time.to(user_timezone)  
+            event['time'] = local_time.format('YYYY-MM-DD HH:mm:ss')
+
         return render_template('home.html', user=user, weather=weather, tidal_info=tidal_info, extended_forecast=extended_forecast)
     else:
         return render_template('home-anon.html')
+
 
 
 @app.route('/sign_up', methods=['GET', 'POST'])

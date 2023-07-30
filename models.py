@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_bcrypt import Bcrypt
+from timezonefinder import TimezoneFinder
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -145,6 +146,14 @@ class Preference(db.Model):
 
     longitude = db.Column(db.Float, 
                           nullable=True)
+
+    user_timezone = db.Column(db.String(50), nullable=True)
+
+    @classmethod
+    def get_user_timezone(cls, latitude, longitude):
+        finder = TimezoneFinder()
+        user_timezone = finder.timezone_at(lng=longitude, lat=latitude)
+        return user_timezone
     
     @classmethod
     def create_preference(cls, user_id, temp_unit, air_temp, tide_pref, time_of_day, location, forecast_length, latitude, longitude):
