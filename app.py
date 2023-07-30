@@ -78,6 +78,7 @@ def get_current_weather(latitude, longitude, api_key, units):
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
+        print(data)
         return data
     else:
         print(f'Error occurred during the API request. Status code: {response.status_code}')
@@ -114,9 +115,9 @@ def get_weather_forecast(latitude, longitude, api_key, units, forecast_length):
 
     if response.status_code == 200:
         data = response.json()
-        serialized_data = json.dumps(data['data'])  # Convert list of dicts to JSON string
+        serialized_data = json.dumps(data['data'])  
         redis_client.set(cache_key, serialized_data, ex=86400)
-        return data['data']  # Return the list of dictionaries
+        return data['data']  
     else:
         print(f'Error occurred during the API request. Status code: {response.status_code}')
         return None
