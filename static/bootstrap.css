@@ -12149,3 +12149,8 @@ textarea.form-control-lg {
 .badge.bg-light {
   color: #073642;
 }
+
+.forecast-card:hover{
+  box-shadow: 0 8px 16px rgba(159, 10, 218, 0.816);
+  cursor: pointer;
+}

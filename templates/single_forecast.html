@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %} {{ forecast['valid_date'] }} {% endblock %}
+
+{% block content %}
+
+<div>
+    {% set weather_icon = forecast['weather']['icon'] %}
+</div>
+<div class="d-flex justify-content-center align-items-center">
+<div class="card text-bg-secondary border-dark forecast-card" style="width: 18rem;" data-date="{{ forecast['valid_date'] }}">
+    <img src="/static/icons/{{ weather_icon }}.png" class="card-img-top" alt="{{ forecast['weather']['description'] }} icon">
+    <div class="card-body">
+      <h5 class="card-title">Current Weather in {{ user.preference.location }}</h5>
+      <p class="card-text">Your forecast is {{ forecast['weather']['description'] }} in {{ user.preference.location }}.
+        Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
+        current temperature of {{ forecast['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.</p>
+    </div>
+</div>
+  </div>
+{% endblock %}

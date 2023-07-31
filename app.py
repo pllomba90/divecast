@@ -345,6 +345,25 @@ def edit_user():
 
     return render_template('edit.html', user=user, form=form)
 
+@app.route('/forecast/<date>')
+def individual_forecast(date):
+    user = g.user
+    weather_api_key = '426dbf6c3c5c400688f952b786efc418'
+    if user.preference.temp_unit == "F":
+        units = "I"
+    else:
+        units = "M"
+
+    forecast = get_weather_forecast(latitude=user.preference.latitude,
+                                    longitude=user.preference.longitude,
+                                    api_key=weather_api_key,
+                                    units=units,
+                                    forecast_length=user.preference.forecast_length)
+
+    selected_forecast = [f for f in forecast if f['valid_date'] == date]
+
+    return render_template('single_forecast.html', forecast=selected_forecast[0], user=user)
+
 @app.route('/logout')
 def logout():
 

@@ -14,14 +14,13 @@
         {% set weather_icon = weather['data'][0]['weather']['icon'] %}
     </div>
     <div class="d-flex justify-content-center align-items-center">
-    <div class="card text-bg-secondary border-dark forecast-card" style="width: 18rem;" data-date="{{ forecast.valid_date }}">
+    <div class="card text-bg-secondary border-dark forecast-card" style="width: 18rem;" data-date="{{ weather.valid_date }}">
         <img src="/static/icons/{{ weather_icon }}.png" class="card-img-top" alt="{{ weather['data'][0]['weather']['description'] }} icon">
         <div class="card-body">
           <h5 class="card-title">Current Weather in {{ user.preference.location }}</h5>
           <p class="card-text">Your forecast is {{ weather['data'][0]['weather']['description'] }} in {{ user.preference.location }}.
             Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
             current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.</p>
-          <a href="#" class="btn btn-primary">Go somewhere</a>
         </div>
     </div>
       </div>
@@ -48,7 +47,6 @@
                           
                             {% endfor %}
                         </ul>
-                        <a href="#" class="btn btn-primary">Go somewhere</a>
                     </div>
                 </div>
             </div>
