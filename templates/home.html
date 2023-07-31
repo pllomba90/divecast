@@ -9,6 +9,9 @@
         Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
         current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.
     </p>
+    <div class="ideal-dive-time">
+        <p>Ideal Dive Time: {{ ideal_dive_time }}</p>
+    </div>
 {% if weather %}
     <div>
         {% set weather_icon = weather['data'][0]['weather']['icon'] %}
