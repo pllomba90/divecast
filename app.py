@@ -161,15 +161,15 @@ def get_tidal_info(api_key, latitude, longitude, forecast_length):
     if data:
         return data
 
+
 def calculate_ideal_dive_time(tidal_info, preference):
     user = g.user
     latitude = user.preference.latitude
-    longitude=user.preference.longitude
+    longitude = user.preference.longitude
     forecast_length = int(user.preference.forecast_length)
     api_key = 'f7e98148-282d-11ee-86b2-0242ac130002-f7e981fc-282d-11ee-86b2-0242ac130002'
 
     tidal_info = get_tidal_info(api_key, latitude, longitude, forecast_length)
-
 
     low_tide_events = [event for event in tidal_info['data'] if event['type'] == 'low']
     high_tide_events = [event for event in tidal_info['data'] if event['type'] == 'high']
@@ -177,13 +177,27 @@ def calculate_ideal_dive_time(tidal_info, preference):
     first_low_tide = low_tide_events[0]
     first_high_tide = high_tide_events[0]
 
-
     if user.preference.tide_preference == 'incoming':
-        ideal_dive_time = arrow.get(first_low_tide['time']).shift(hours=1.5).format('HH:mm:ss')
+        ideal_dive_time = arrow.get(first_low_tide['time']).shift(hours=1.5)
     else:
-        ideal_dive_time = arrow.get(first_high_tide['time']).shift(hours=1.5).format('HH:mm:ss')
+        ideal_dive_time = arrow.get(first_high_tide['time']).shift(hours=1.5)
 
-    return ideal_dive_time
+    morning_time = arrow.get('06:00', 'HH:mm')
+    afternoon_time = arrow.get('11:00', 'HH:mm')
+    evening_time = arrow.get('16:00', 'HH:mm')
+
+    if user.preference.time_of_day == 'morning' and morning_time <= ideal_dive_time < afternoon_time:
+        matched_tide_time = 'morning'
+    elif user.preference.time_of_day == 'afternoon' and afternoon_time <= ideal_dive_time < evening_time:
+        matched_tide_time = 'afternoon'
+    elif user.preference.time_of_day == 'evening' and evening_time <= ideal_dive_time:
+        matched_tide_time = 'evening'
+    else:
+        matched_tide_time = None
+
+    return ideal_dive_time.format('HH:mm:ss'), matched_tide_time
+
+
 
 def get_current_coords(location, api_key):
     
@@ -234,7 +248,7 @@ def home_page():
         
         user_timezone = user.preference.get_user_timezone(user.preference.latitude, user.preference.longitude)
 
-        ideal_dive_time = calculate_ideal_dive_time(tidal_info=tidal_info,
+        ideal_dive_time, matched_tide_time = calculate_ideal_dive_time(tidal_info=tidal_info,
                                                     preference=user.preference.tide_preference)
 
         for event in tidal_info['data']:
@@ -246,7 +260,8 @@ def home_page():
                                weather=weather, 
                                tidal_info=tidal_info, 
                                extended_forecast=extended_forecast, 
-                               ideal_dive_time=ideal_dive_time)
+                               ideal_dive_time=ideal_dive_time,
+                               matched_tide_time=matched_tide_time)
     else:
         return render_template('home-anon.html')
 
@@ -379,11 +394,20 @@ def edit_user():
 @app.route('/forecast/<date>')
 def individual_forecast(date):
     user = g.user
+    tidal_api_key = 'f7e98148-282d-11ee-86b2-0242ac130002-f7e981fc-282d-11ee-86b2-0242ac130002'
     weather_api_key = '426dbf6c3c5c400688f952b786efc418'
     if user.preference.temp_unit == "F":
         units = "I"
     else:
         units = "M"
+
+    tidal_info = get_tidal_info(latitude=user.preference.latitude,
+                                    longitude=user.preference.longitude, 
+                                    api_key=tidal_api_key,
+                                    forecast_length=user.preference.forecast_length)
+    
+    ideal_dive_time, matched_tide_time = calculate_ideal_dive_time(tidal_info=tidal_info,
+                                                    preference=user.preference.tide_preference)
 
     forecast = get_weather_forecast(latitude=user.preference.latitude,
                                     longitude=user.preference.longitude,
@@ -393,7 +417,12 @@ def individual_forecast(date):
 
     selected_forecast = [f for f in forecast if f['valid_date'] == date]
 
-    return render_template('single_forecast.html', forecast=selected_forecast[0], user=user)
+    return render_template('single_forecast.html', 
+                           forecast=selected_forecast[0],
+                             user=user, 
+                             ideal_dive_time=ideal_dive_time,
+                             matched_tide_time=matched_tide_time,
+                             tidal_info=tidal_info)
 
 @app.route('/logout')
 def logout():

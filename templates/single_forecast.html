@@ -18,4 +18,12 @@
     </div>
 </div>
   </div>
+  <div class="ideal-dive-time">
+    <p>Ideal Dive Time: {{ ideal_dive_time }}</p>
+{% if matched_tide_time %}
+<p>Matched Tide Time: {{ matched_tide_time }}</p>
+{% else %}
+<p>No matched tide time found for your preference.</p>
+{% endif %}
+</div>
 {% endblock %}
