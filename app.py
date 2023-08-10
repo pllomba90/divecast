@@ -186,12 +186,12 @@ def calculate_ideal_dive_time(tidal_info, preference):
     afternoon_time = arrow.get('11:00', 'HH:mm')
     evening_time = arrow.get('16:00', 'HH:mm')
 
-    if user.preference.time_of_day == 'morning' and morning_time <= ideal_dive_time < afternoon_time:
-        matched_tide_time = 'morning'
-    elif user.preference.time_of_day == 'afternoon' and afternoon_time <= ideal_dive_time < evening_time:
-        matched_tide_time = 'afternoon'
-    elif user.preference.time_of_day == 'evening' and evening_time <= ideal_dive_time:
-        matched_tide_time = 'evening'
+    if user.preference.time_of_day == 'Morning' and morning_time <= ideal_dive_time < afternoon_time:
+        matched_tide_time = 'Morning'
+    elif user.preference.time_of_day == 'Afternoon' and afternoon_time <= ideal_dive_time < evening_time:
+        matched_tide_time = 'Afternoon'
+    elif user.preference.time_of_day == 'Evening' and evening_time <= ideal_dive_time:
+        matched_tide_time = 'Evening'
     else:
         matched_tide_time = None
 

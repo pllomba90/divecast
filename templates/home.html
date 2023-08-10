@@ -3,6 +3,7 @@
 {% block title %}Welcome!{% endblock %}
 
 {% block content %}
+{% if weather %}
 <div class="container">
     <h1 class="display-1">Welcome {{ user.first_name }} {{ user.last_name }}!</h1>
     <p>Your forecast is {{ weather['data'][0]['weather']['description'] }} in {{ user.preference.location }}.
@@ -17,7 +18,7 @@
     <p>No matched tide time found for your preference.</p>
     {% endif %}
     </div>
-{% if weather %}
+ 
     <div>
         {% set weather_icon = weather['data'][0]['weather']['icon'] %}
     </div>
