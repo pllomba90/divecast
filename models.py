@@ -71,41 +71,6 @@ class User(db.Model):
 
         return False
 
-    
-
-    
-
-class Tide(db.Model):
-    """Tidal model """
-
-    __tablename__ = 'tides'
-
-    id = db.Column(db.Integer,
-                   primary_key=True)
-    
-    location = db.Column(db.String,
-                         nullable=False)
-    
-    time_span = db.Column(db.DateTime,
-                          nullable=False,
-        default=datetime.utcnow())
-
-
-class Weather(db.Model):
-    """Weather model"""
-
-    __tablename__ = "weather"
-
-    id =  db.Column(db.Integer,
-                    primary_key=True)
-    
-    location = db.Column(db.String,
-                         nullable=False)
-    
-    time_span = db.Column(db.DateTime,
-                          nullable=False,
-        default=datetime.utcnow())
-
 class Preference(db.Model):
     """This is meant to bring together a users 
     tidal and weather from location"""

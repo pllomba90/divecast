@@ -2,7 +2,7 @@ from flask import Flask, redirect, render_template, session, flash, g
 from flask_debugtoolbar import DebugToolbarExtension
 from forms import SignUpForm, LoginForm, PreferenceForm
 from sqlalchemy.exc import IntegrityError
-from models import User, Weather, Tide, Preference, db, connect_db
+from models import User, Preference, db, connect_db
 import requests, arrow, redis, json, pytz
 from datetime import datetime
 
