@@ -12,9 +12,15 @@
     <img src="/static/icons/{{ weather_icon }}.png" class="card-img-top" alt="{{ forecast['weather']['description'] }} icon">
     <div class="card-body">
       <h5 class="card-title">Current Weather in {{ user.preference.location }}</h5>
-      <p class="card-text">Your forecast is {{ forecast['weather']['description'] }} in {{ user.preference.location }}.
-        Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
-        current temperature of {{ forecast['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.</p>
+      <p class="card-text">Your forecast is {{ forecast['weather']['description'] }} in {{ user.preference.location }}.</p>
+        {% if correct_temp %}
+        <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
+        predicted temperature of {{ forecast['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.</p>
+        {% else %}
+        <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
+        predicted temperature of {{ forecast['temp'] }}&deg;{{ user.preference.temp_unit }}, go ahead and dive.
+    </p>
+    {% endif %}
     </div>
 </div>
   </div>

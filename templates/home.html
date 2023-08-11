@@ -6,10 +6,15 @@
 {% if weather %}
 <div class="container">
     <h1 class="display-1">Welcome {{ user.first_name }} {{ user.last_name }}!</h1>
-    <p>Your forecast is {{ weather['data'][0]['weather']['description'] }} in {{ user.preference.location }}.
-        Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
+    <p>Your forecast is {{ weather['data'][0]['weather']['description'] }} in {{ user.preference.location }}.</p>
+        {% if correct_temp %}
+        <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
+        current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, go ahead and dive.</p>
+        {% else %}
+        <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
         current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.
     </p>
+    {% endif %}
     <div class="ideal-dive-time">
         <p>Ideal Dive Time: {{ ideal_dive_time }}</p>
     {% if matched_tide_time %}
@@ -28,8 +33,14 @@
         <div class="card-body">
           <h5 class="card-title">Current Weather in {{ user.preference.location }}</h5>
           <p class="card-text">Your forecast is {{ weather['data'][0]['weather']['description'] }} in {{ user.preference.location }}.
-            Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
-            current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.</p>
+            {% if correct_temp %}
+            <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
+            current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, go ahead and dive.</p>
+            {% else %}
+            <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
+            current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.
+        </p>
+        {% endif %}
         </div>
     </div>
       </div>

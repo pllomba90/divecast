@@ -20,7 +20,6 @@ redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 with app.app_context():
     connect_db(app)
-
     db.create_all()
 
 app.config['SECRET_KEY'] = "alwaysbetter"
@@ -121,6 +120,24 @@ def get_weather_forecast(latitude, longitude, api_key, units, forecast_length):
     else:
         print(f'Error occurred during the API request. Status code: {response.status_code}')
         return None
+    
+def get_correct_temp(user, weather_data):
+    api_key = '426dbf6c3c5c400688f952b786efc418'
+
+    latitude = user.preference.latitude
+    longitude = user.preference.longitude
+
+    if user.preference.temp_unit == "F":
+        units = "I"
+    else:
+        units = "M"
+    weather_data = get_current_weather(latitude, longitude, api_key, units)
+
+    if user.preference.air_temp <= weather_data['data'][0]['temp']:
+        return True
+    else:
+        return False
+
 
 def fetch_and_cache_tidal_info(api_key, latitude, longitude, forecast_length):
     user = g.user
@@ -248,6 +265,8 @@ def home_page():
         
         user_timezone = user.preference.get_user_timezone(user.preference.latitude, user.preference.longitude)
 
+        correct_temp = get_correct_temp(user, weather_data=weather)
+
         ideal_dive_time, matched_tide_time = calculate_ideal_dive_time(tidal_info=tidal_info,
                                                     preference=user.preference.tide_preference)
 
@@ -261,7 +280,8 @@ def home_page():
                                tidal_info=tidal_info, 
                                extended_forecast=extended_forecast, 
                                ideal_dive_time=ideal_dive_time,
-                               matched_tide_time=matched_tide_time)
+                               matched_tide_time=matched_tide_time,
+                               correct_temp=correct_temp)
     else:
         return render_template('home-anon.html')
 
