@@ -5,34 +5,32 @@
 {% block content %}
 {% if weather %}
 <div class="container">
-    <h1 class="display-1">Welcome {{ user.first_name }} {{ user.last_name }}!</h1>
-    <p>Your forecast is {{ weather['data'][0]['weather']['description'] }} in {{ user.preference.location }}.</p>
-        {% if correct_temp %}
-        <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
-        current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, go ahead and dive.</p>
-        {% else %}
-        <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
-        current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.
-    </p>
-    {% endif %}
-    <div class="ideal-dive-time">
-        <p>Ideal Dive Time: {{ ideal_dive_time }}</p>
-    {% if matched_tide_time %}
-    <p>Matched Tide Time: {{ matched_tide_time }}</p>
-    {% else %}
-    <p>No matched tide time found for your preference.</p>
-    {% endif %}
-    </div>
- 
+<h1 class="display-1">Welcome {{ user.first_name }} {{ user.last_name }}!</h1>
+</div>
+<div class="container">
     <div>
         {% set weather_icon = weather['data'][0]['weather']['icon'] %}
     </div>
     <div class="d-flex justify-content-center align-items-center">
-    <div class="card text-bg-secondary border-dark forecast-card" style="width: 18rem;" data-date="{{ weather.valid_date }}">
-        <img src="/static/icons/{{ weather_icon }}.png" class="card-img-top" alt="{{ weather['data'][0]['weather']['description'] }} icon">
+    <div class="card text-bg-secondary border-dark mb-3 forecast-card " data-date="{{ weather.valid_date }}">
+        <img src="/static/icons/{{ weather_icon }}.png" class="card-img-top border-dark" alt="{{ weather['data'][0]['weather']['description'] }} icon">
         <div class="card-body">
           <h5 class="card-title">Current Weather in {{ user.preference.location }}</h5>
           <p class="card-text">Your forecast is {{ weather['data'][0]['weather']['description'] }} in {{ user.preference.location }}.
+        </p>
+        <ul>
+            <li>Current Temperature: {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}</li>
+            <li>Wind Direction: {{ weather['data'][0]['wind_cdir'] }}</li>
+            <li>Wind Speed: {{ weather['data'][0]['wind_spd'] }} MPH</li>
+            <li>Gusts up to: {{ weather['data'][0]['gust'] }} MPH</li>
+            <li>Visibility: {{ weather['data'][0]['vis'] }} NM</li>
+            <li>Dewpoint: {{ weather['data'][0]['dewpt'] }}&deg;{{ user.preference.temp_unit }}</li>
+        </ul>
+        </div>
+    </div>
+      </div>
+    </div>
+      <div class="container justify-text-center">
             {% if correct_temp %}
             <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
             current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, go ahead and dive.</p>
@@ -41,37 +39,58 @@
             current temperature of {{ weather['data'][0]['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.
         </p>
         {% endif %}
+        <div class="ideal-dive-time">
+            <p>Ideal Dive Time: {{ ideal_dive_time }}</p>
+        {% if matched_tide_time %}
+        <p>Matched Tide Time: {{ matched_tide_time }}</p>
+        {% else %}
+        <p>No matched tide time found for your preference.</p>
+        {% endif %}
         </div>
-    </div>
-      </div>
       <div class="container text-center mb-4">
         <h2>Extended Forecast:</h2>
       </div>
       
       <div class="container">
-        <div class="row justify-content-center">
-            {% for forecast in extended_forecast %}
-            <div class="col-md-2 mb-2">
-                <div class="card text-bg-secondary border-dark forecast-card" style="width: 11rem;" data-date="{{ forecast.valid_date }}">
-                    <img src="/static/icons/{{ forecast.weather['icon'] }}.png" class="card-img-top" alt="{{ forecast.weather['description'] }} icon">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ forecast.valid_date }}</h5>
-                        <p class="card-text">Weather Description: {{ forecast.weather['description'] }}</p>
-                        <p class="card-text">Temperature: {{ forecast.temp }}&deg;{{ user.preference.temp_unit }}</p>
-                        <p class="card-text">Tide:</p>
-                        <ul>
-                          {% for event in tidal_info.data if event.time[:10] == forecast.valid_date %}
-                          <li>{{ event.type }} - {{ event.time[11:16] }}</li>
-                          {% else %}
-                           <li>Tidal information not available.</li>
-                          
-                            {% endfor %}
-                        </ul>
+        
+        <div id="forecastCarousel" class="carousel slide">
+            <div class="carousel-inner">
+                <div class="row justify-content-center">
+                    <div class="col-md-2 mb-2">
+                {% for forecast in extended_forecast %}
+                <div class="carousel-item{% if loop.index == 1 %} active{% endif %}">
+                        <div class="card text-bg-secondary border-dark forecast-card d-block w-100" data-date="{{ forecast.valid_date }}">
+                            <img src="/static/icons/{{ forecast.weather['icon'] }}.png" class="card-img-top" alt="{{ forecast.weather['description'] }} icon">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ forecast.valid_date }}</h5>
+                                <p class="card-text">Weather Description: {{ forecast.weather['description'] }}</p>
+                                <p class="card-text">High of the day: {{ forecast.max_temp }}&deg;{{ user.preference.temp_unit }}</p>
+                                <p class="card-text">Low of the day: {{ forecast.min_temp }}&deg;{{ user.preference.temp_unit }}</p>
+                                <p class="card-text">Tide:</p>
+                                <ul>
+                                  {% for event in tidal_info.data if event.time[:10] == forecast.valid_date %}
+                                  <li>{{ event.type }} - {{ event.time[11:16] }}</li>
+                                  {% else %}
+                                   <li>Tidal information not available.</li>
+                                  
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-            </div>
-            {% endfor %}
-        </div>
+                </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#forecastCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#forecastCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          </div>
+    </div>
     </div>
     
       

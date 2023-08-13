@@ -3,7 +3,7 @@
 {% block title %} {{ forecast['valid_date'] }} {% endblock %}
 
 {% block content %}
-
+<h1 class="display-1">Weather for {{ forecast['valid_date'] }}</h1>
 <div>
     {% set weather_icon = forecast['weather']['icon'] %}
 </div>
@@ -11,16 +11,17 @@
 <div class="card text-bg-secondary border-dark forecast-card" style="width: 18rem;" data-date="{{ forecast['valid_date'] }}">
     <img src="/static/icons/{{ weather_icon }}.png" class="card-img-top" alt="{{ forecast['weather']['description'] }} icon">
     <div class="card-body">
-      <h5 class="card-title">Current Weather in {{ user.preference.location }}</h5>
+      <h5 class="card-title">Weather in {{ user.preference.location }} for {{ forecast['valid_date'] }}</h5>
       <p class="card-text">Your forecast is {{ forecast['weather']['description'] }} in {{ user.preference.location }}.</p>
-        {% if correct_temp %}
-        <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
-        predicted temperature of {{ forecast['temp'] }}&deg;{{ user.preference.temp_unit }}, you should stay out of the water.</p>
-        {% else %}
-        <p>Based on your preferred air temp of {{ user.preference.air_temp }}&deg;{{ user.preference.temp_unit }} and the 
-        predicted temperature of {{ forecast['temp'] }}&deg;{{ user.preference.temp_unit }}, go ahead and dive.
-    </p>
-    {% endif %}
+      <ul>
+        <li>High of the day: {{ forecast['max_temp'] }}&deg;{{ user.preference.temp_unit }}</li>
+        <li>Low of the day: {{ forecast['min_temp'] }}&deg;{{ user.preference.temp_unit }}</li>
+        <li>Wind Direction: {{ forecast['wind_cdir'] }}</li>
+        <li>Wind Speed: {{ forecast['wind_spd'] }} MPH</li>
+        <li>Gusts up to: {{ forecast['wind_gust_spd'] }} MPH</li>
+        <li>Visibility: {{ forecast['vis'] }} NM</li>
+        <li>Dewpoint: {{ forecast['dewpt'] }}&deg;{{ user.preference.temp_unit }}</li>
+    </ul>
     </div>
 </div>
   </div>
