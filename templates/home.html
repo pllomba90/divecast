@@ -34,6 +34,7 @@
             <li>Gusts up to: {{ weather['data'][0]['gust'] }} MPH</li>
             <li>Visibility: {{ weather['data'][0]['vis'] }} NM</li>
             <li>Dewpoint: {{ weather['data'][0]['dewpt'] }}&deg;{{ user.preference.temp_unit }}</li>
+            <li>UV Index: {{ weather['data'][0]['uv'] }}</li>
         </ul>
         </div>
     </div>
