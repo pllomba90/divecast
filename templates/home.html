@@ -7,6 +7,15 @@
 <div class="container">
 <h1 class="display-1">Welcome {{ user.first_name }} {{ user.last_name }}!</h1>
 </div>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 <div class="container">
     <div>
         {% set weather_icon = weather['data'][0]['weather']['icon'] %}

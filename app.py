@@ -366,8 +366,8 @@ def set_up_prefs():
             return redirect('/')
 
     else:
-                # flash('Location not found. Please enter a valid location.', 'danger')
-                # flash('Error occurred during geocoding. Please try again later.', 'danger')
+                flash('Location not found. Please enter a valid location.', 'danger')
+                flash('Error occurred during geocoding. Please try again later.', 'danger')
                 return render_template('initial_prefs.html', form=form)
             
     
