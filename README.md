@@ -9,3 +9,9 @@ Tidal conditions:
 https://api.stormglass.io/v2/tide/extremes/point
 Location translation into latitude and longitude:
 https://api.opencagedata.com/geocode
+
+This project is mainly built on Python3. There is the littlest bit of Javascript for the front end functionality 
+and as I work to improve it I'm sure I will use more Javascript to beautify the front end. I used a PSQL database as my user 
+database and a Redis server as my cache for short term information storing and to speed up certain aspects of the project. This 
+is a project I intend to tinker with for some time so I will certainly be adding more information here. I will have to use Docker to
+launch it on Render.com as they don't support this iteration of Python. 
