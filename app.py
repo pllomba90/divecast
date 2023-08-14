@@ -322,7 +322,6 @@ def login():
         if user:
             do_login(user)
             add_user_to_g()
-            flash(f"Hello, {user.username}!", "success")
             return redirect("/")
     
     else:
@@ -367,8 +366,8 @@ def set_up_prefs():
             return redirect('/')
 
     else:
-                flash('Location not found. Please enter a valid location.', 'danger')
-                flash('Error occurred during geocoding. Please try again later.', 'danger')
+                flash('Location not found. Please enter a valid location.', 'error')
+                flash('Error occurred during geocoding. Please try again later.', 'error')
                 return render_template('initial_prefs.html', form=form)
             
     
@@ -408,7 +407,7 @@ def edit_user():
             db.session.commit()
             return redirect('/')
 
-        flash('Location not found. Please enter a valid location.', 'danger')
+        flash('Location not found. Please enter a valid location.', 'error')
 
     return render_template('edit.html', user=user, form=form)
 
