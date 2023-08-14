@@ -324,10 +324,11 @@ def login():
             add_user_to_g()
             flash(f"Hello, {user.username}!", "success")
             return redirect("/")
+    
+    else:
 
         flash("Invalid credentials.", 'danger')
-
-    return render_template('login.html', form=form)
+        return render_template('login.html', form=form)
 
 
 
