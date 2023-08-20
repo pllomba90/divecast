@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, session, flash, g
 from flask_debugtoolbar import DebugToolbarExtension
 from forms import SignUpForm, LoginForm, PreferenceForm
@@ -7,6 +9,7 @@ import requests, arrow, redis, json, pytz
 from datetime import datetime
 
 
+load_dotenv()
 
 CURR_USER_KEY = "curr_user"
 
@@ -18,11 +21,12 @@ app.config['SQLALCHEMY_ECHO'] = True
 
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
+
 with app.app_context():
     connect_db(app)
     db.create_all()
 
-app.config['SECRET_KEY'] = "alwaysbetter"
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
 debug = DebugToolbarExtension(app)
 
@@ -56,7 +60,7 @@ def do_logout():
 
 
 def get_current_weather(latitude, longitude, api_key, units):
-    api_key = '426dbf6c3c5c400688f952b786efc418'
+    api_key = os.environ['weather_api_key']
 
     user_id = g.user.id
 
@@ -94,7 +98,7 @@ def get_weather_forecast(latitude, longitude, api_key, units, forecast_length):
     
 
 
-    api_key = '426dbf6c3c5c400688f952b786efc418'
+    api_key = os.environ['weather_api_key']
 
     user_id = g.user.id
 
@@ -122,7 +126,7 @@ def get_weather_forecast(latitude, longitude, api_key, units, forecast_length):
         return None
     
 def get_correct_temp(user, weather_data):
-    api_key = '426dbf6c3c5c400688f952b786efc418'
+    api_key = os.environ['weather_api_key']
 
     latitude = user.preference.latitude
     longitude = user.preference.longitude
@@ -184,7 +188,7 @@ def calculate_ideal_dive_time(tidal_info, preference):
     latitude = user.preference.latitude
     longitude = user.preference.longitude
     forecast_length = int(user.preference.forecast_length)
-    api_key = 'f7e98148-282d-11ee-86b2-0242ac130002-f7e981fc-282d-11ee-86b2-0242ac130002'
+    api_key = os.environ['tidal_api_key']
 
     tidal_info = get_tidal_info(api_key, latitude, longitude, forecast_length)
 
@@ -218,7 +222,7 @@ def calculate_ideal_dive_time(tidal_info, preference):
 
 def get_current_coords(location, api_key):
     
-    api_key = '5b5d66b9a6ff4b5789d6d3a6ae9f7268'  
+    api_key = os.environ['geolocation_api_key'] 
     url = f'https://api.opencagedata.com/geocode/v1/json?q={location}&key={api_key}'
 
     response = requests.get(url)
@@ -240,8 +244,8 @@ def home_page():
     """Show homepage: either for a logged-in user or for an anon user"""
     if g.user:
         user = g.user
-        tidal_api_key = 'f7e98148-282d-11ee-86b2-0242ac130002-f7e981fc-282d-11ee-86b2-0242ac130002'
-        weather_api_key = '426dbf6c3c5c400688f952b786efc418'
+        tidal_api_key = os.environ['tidal_api_key']
+        weather_api_key = os.environ['weather_api_key']
         if user.preference.temp_unit == "F":
             units = "I"
         else:
@@ -337,7 +341,7 @@ def set_up_prefs():
 
     form = PreferenceForm()
 
-    api_key = "5b5d66b9a6ff4b5789d6d3a6ae9f7268"
+    api_key = os.environ['geolocation_api_key']
     
 
     if form.is_submitted() and form.validate():
@@ -376,7 +380,7 @@ def edit_user():
 
     user_id = g.user.id
     user = User.query.get(user_id)
-    api_key = "5b5d66b9a6ff4b5789d6d3a6ae9f7268"
+    api_key = os.environ['geolocation_api_key']
 
     form = PreferenceForm(obj=user.preference)
 
@@ -414,8 +418,8 @@ def edit_user():
 @app.route('/forecast/<date>')
 def individual_forecast(date):
     user = g.user
-    tidal_api_key = 'f7e98148-282d-11ee-86b2-0242ac130002-f7e981fc-282d-11ee-86b2-0242ac130002'
-    weather_api_key = '426dbf6c3c5c400688f952b786efc418'
+    tidal_api_key = os.environ['tidal_api_key']
+    weather_api_key = os.environ['weather_api_key']
     if user.preference.temp_unit == "F":
         units = "I"
     else:
