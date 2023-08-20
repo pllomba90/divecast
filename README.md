@@ -1,4 +1,4 @@
-Divecast
+#Divecast#
 This is a weather and tide focused SCUBA dive planning application. The user is prompted to input location and tide preferences.
 The application querys the weather and tidal conditions for the selected location and then provides an ideal time for the user to 
 plan on entering the water if there is such a time that meets the user's preferences. 
