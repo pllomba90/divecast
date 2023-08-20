@@ -26,9 +26,9 @@ If you desire to run this application on your own local device feel free to clon
 After setting up your local virtual enviroment you can install all the necessary dependencies using 
 the `pip install -r requirements.txt` command or you can install them individually from that same file.
 You will need to obtain three api keys to the following urls: 
-- https://api.weatherbit.io/v2.0/forecast/daily
-- https://api.stormglass.io/v2/tide/extremes/point
-- https://api.opencagedata.com/geocode
+- [Weatherbit](https://api.weatherbit.io/v2.0/forecast/daily)
+- [Stormglass](https://api.stormglass.io/v2/tide/extremes/point)
+- [OpenCageData](https://api.opencagedata.com/geocode)
 
 This application does require the creation of an account. It is intended for planning purposes and no weather forecast
 is a guarantee of actual weather conditions. 
